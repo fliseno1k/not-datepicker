@@ -12,7 +12,6 @@ export class Atom {
 	constructor(date: Date, value: string, modifiers?: string[]) {
 		this.date = date;
 		this.value = value;
-
 		this.modifiersSet = new Set(modifiers ?? []);
 	}
 
