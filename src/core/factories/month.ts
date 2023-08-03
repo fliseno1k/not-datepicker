@@ -27,8 +27,8 @@ export function spacelessMonthFactory(date: Date): Atom[] {
 	const monthStart = getMonthStart(normalizedDate);
 	const monthEnd = getMonthEnd(normalizedDate);
 
-	const prevMonthDays = monthStart.getDay();
-	const nextMonthDays = 6 - monthEnd.getDay();
+	const prevMonthDays = monthStart.getDay() === 0 ? 6 : monthStart.getDay() - 1;
+	const nextMonthDays = monthEnd.getDay() === 0 ? 0 : 6 - monthEnd.getDay() + 1;
 
 	const finalMonthLength = getMonthLength(normalizedDate) + prevMonthDays + nextMonthDays;
 	const finalStartDate = shiftDateOnDays(monthStart, -1 * prevMonthDays);
