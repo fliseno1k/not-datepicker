@@ -18,7 +18,7 @@ function printMonth(month: Atom[]): void {
 
 	const firstDay = month[0].date.getDay() - 1;
 
-	for (let i = -firstDay; i < month.length + firstDay + 1; i += WEEK_LENGTH) {
+	for (let i = -firstDay; i < month.length + firstDay; i += WEEK_LENGTH) {
 		const start = Math.max(i, 0);
 		const end = Math.min(i + WEEK_LENGTH - 1, month.length - 1);
 		const days = month.slice(start, end + 1).map(toValue);
