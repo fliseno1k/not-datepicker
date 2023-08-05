@@ -22,17 +22,19 @@ export function baseMonthFactory(date: Date): Atom[] {
 	return month;
 }
 
-export function spacelessMonthFactory(date: Date): Atom[] {
+export function spacelessMonthFactory(date: Date, firstDayIndex: number = 0): Atom[] {
 	const normalizedDate = normalizeMonthDate(date);
 	const monthStart = getMonthStart(normalizedDate);
 	const monthEnd = getMonthEnd(normalizedDate);
 
-	const prevMonthDays = monthStart.getDay() === 0 ? 6 : monthStart.getDay() - 1;
-	const nextMonthDays = monthEnd.getDay() === 0 ? 0 : 6 - monthEnd.getDay() + 1;
+	let prevMonthDays = monthStart.getDay() - firstDayIndex;
+	prevMonthDays += prevMonthDays < 0 ? 7 : 0;
+
+	let nextMonthDays = 6 - monthEnd.getDay() + firstDayIndex;
+	nextMonthDays -= nextMonthDays > 6 ? 7 : 0;
 
 	const finalMonthLength = getMonthLength(normalizedDate) + prevMonthDays + nextMonthDays;
 	const finalStartDate = shiftDateOnDays(monthStart, -1 * prevMonthDays);
-
 	const month = evaluateMonth(finalStartDate, finalMonthLength);
 
 	return month;
