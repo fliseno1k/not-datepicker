@@ -1,6 +1,6 @@
 function toValue(element: any): string {
 	if (!(element instanceof Date)) {
-		return String(element);
+		return '--';
 	}
 
 	return element.getDate().toString().padStart(2, '0');

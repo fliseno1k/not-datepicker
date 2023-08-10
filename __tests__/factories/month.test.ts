@@ -1,72 +1,92 @@
-import { Atom } from 'src/core/atom';
-import { baseMonthFactory } from 'src/core/factories';
+import { getBaseMonth, getSpacelessMonth } from 'src/core/factories';
+import type { BaseMonthOptions, Month } from 'src/core/factories';
 
-function getDaysSequence(from: number, to: number): number[] {
-	if (from > to) {
-		throw new Error('Incorrect range of bounds');
-	}
-
-	if (from === to) {
-		return [from];
-	}
-
-	return [...new Array(to - from + 1)].map((_, i) => from + i);
-}
-
-function atomsToDays(atoms: Atom[]): number[] {
-	return atoms.map(atom => atom.date.getDate());
-}
-
-type MonthSpec = {
+type MonthSceme = {
 	date: Date;
-	days: number[];
-	conjugatedDays: {
-		fromPrevMonth: number[];
-		fromNextMonth: number[];
-	};
+	length: number;
+	firstDayIndex: number;
+	arguments: BaseMonthOptions;
 };
 
-const monthsStartsBySun: MonthSpec[] = [
+type PreparedMonth = {
+	month: (Date | null)[];
+} & MonthSceme;
+
+const monthsSchemes: MonthSceme[] = [
 	{
-		date: new Date(2022, 11, 1),
-		days: getDaysSequence(1, 31),
-		conjugatedDays: {
-			fromPrevMonth: getDaysSequence(27, 30),
-			fromNextMonth: [],
-		},
-	},
-	{
-		date: new Date(2023, 0, 1),
-		days: getDaysSequence(1, 31),
-		conjugatedDays: {
-			fromPrevMonth: [],
-			fromNextMonth: getDaysSequence(1, 4),
-		},
-	},
-	{
-		date: new Date(2023, 5, 1),
-		days: getDaysSequence(1, 30),
-		conjugatedDays: {
-			fromPrevMonth: getDaysSequence(28, 31),
-			fromNextMonth: [1],
-		},
-	},
-	{
-		date: new Date(2023, 6, 1),
-		days: getDaysSequence(1, 31),
-		conjugatedDays: {
-			fromPrevMonth: getDaysSequence(25, 30),
-			fromNextMonth: getDaysSequence(1, 5),
+		date: new Date(2023, 7, 1),
+		length: 31,
+		firstDayIndex: 1,
+		arguments: {
+			weekStartDayIndex: 1,
 		},
 	},
 ];
 
 describe('Month factories', () => {
-	describe('baseMonthFactory:', () => {
-		it('should return an array that contains all dates for specified date', () => {
-			const months = monthsStartsBySun.map(month => atomsToDays(baseMonthFactory(month.date)));
+	describe('getBaseMonth()', () => {
+		const preparedSchemes = monthsSchemes.map(scheme => prepareTestCases(scheme, getBaseMonth));
 
-			expect(months).toEqual(monthsStartsBySun.map(m => m.days));
-		});
+		for (const scheme of preparedSchemes) {
+			it(`should return a valid array of dates representing a month for ${scheme.date.toLocaleDateString()}`, () => {
+				expect(isMultipleOf(7)(scheme.month.length)).toBeTruthy();
+				expect(hasCorrectFirstDayOffset(scheme.firstDayIndex, scheme.month));
+				expect(hasCorrectDatesSequenceForSingleMonth(scheme.month));
+			});
+		}
 	});
 });
+
+function prepareTestCases<T extends MonthSceme>(
+	scheme: T,
+	fn: (date: Date, options: T['arguments']) => (Date | null)[]
+): PreparedMonth {
+	const month = fn(scheme.date, scheme.arguments);
+
+	return {
+		...scheme,
+		month,
+	};
+}
+
+function isMultipleOf(divider: number) {
+	return function (num: number) {
+		return num % divider === 0;
+	};
+}
+
+function hasCorrectFirstDayOffset(offset: number, array: any[]) {
+	if (!(array[offset] instanceof Date)) {
+		throw new Error('Not a date');
+	}
+
+	return isFirstDayOfMonth(array[offset]);
+}
+
+function isFirstDayOfMonth(date: Date) {
+	return date.getDate() === 1;
+}
+
+function hasCorrectDatesSequenceForSingleMonth(array: Month): boolean {
+	let leftOffset = 0;
+	let rightOffset = array.length - 1;
+
+	while (array[leftOffset] === null && leftOffset++) {}
+	while (array[rightOffset] === null && rightOffset--) {}
+
+	const subarray: Date[] = array.slice(leftOffset, rightOffset) as Date[];
+	let prevData: number[] = [subarray[0].getDate(), subarray[0].getMonth()];
+
+	while (subarray.length > 0) {
+		const date = subarray.shift() as Date;
+		const curData = [date.getDate(), date.getMonth()];
+
+		if (curData[0] - prevData[0] !== 1 || curData[1] !== prevData[1]) {
+			return false;
+		}
+
+		prevData = curData;
+	}
+
+	return true;
+}

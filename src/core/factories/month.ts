@@ -1,19 +1,19 @@
 import { getMonthEnd, getMonthLength, getMonthStart, getNextDay, normalizeMonthDate, shiftDate } from '../dates';
 
+export type Month = (Date | null)[];
+
 export type CommonOptions = {
 	weekStartDayIndex: number;
 };
 
-export type BaseMonthOptions = {
-	spaceCell: any;
-} & CommonOptions;
+export type BaseMonthOptions = CommonOptions;
 
-export function getBaseMonth(date: Date, options: BaseMonthOptions): Date[] {
+export function getBaseMonth(date: Date, options: BaseMonthOptions): Month {
 	const { start, length, adjacentDays } = parseMonth(date, options);
 
 	const month = calculateDatesSequence(start, length);
-	const prevMonthEmptyCells = new Array(adjacentDays[0]).fill(options.spaceCell);
-	const nextMonthEmptyCells = new Array(adjacentDays[1]).fill(options.spaceCell);
+	const prevMonthEmptyCells = new Array(adjacentDays[0]).fill(null);
+	const nextMonthEmptyCells = new Array(adjacentDays[1]).fill(null);
 
 	return prevMonthEmptyCells.concat(month, nextMonthEmptyCells);
 }
@@ -22,7 +22,7 @@ export type SpacelessMonthOptions = {
 	withAlignmentWeek?: boolean;
 } & CommonOptions;
 
-export function getSpacelessMonth(date: Date, options: SpacelessMonthOptions): Date[] {
+export function getSpacelessMonth(date: Date, options: SpacelessMonthOptions): Month {
 	const {
 		start,
 		length,
@@ -54,7 +54,7 @@ function parseMonth(date: Date, options: CommonOptions) {
 	return { normalized, start, end, length, adjacentDays: [prevMonthDays, nextMonthDays] };
 }
 
-function calculateDatesSequence(from: Date, length: number): Date[] {
+function calculateDatesSequence(from: Date, length: number): Month {
 	const collection = new Array(length);
 
 	let nextDay = from;
