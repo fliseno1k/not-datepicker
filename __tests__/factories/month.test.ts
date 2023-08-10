@@ -1,18 +1,18 @@
 import { getBaseMonth, getSpacelessMonth } from 'src/core/factories';
 import type { BaseMonthOptions, Month } from 'src/core/factories';
 
-type MonthSceme = {
+type MonthScheme = {
 	date: Date;
 	length: number;
 	firstDayIndex: number;
 	arguments: BaseMonthOptions;
 };
 
-type PreparedMonth = {
-	month: (Date | null)[];
-} & MonthSceme;
+type HydratedMonthScheme = {
+	month: Month;
+} & MonthScheme;
 
-const monthsSchemes: MonthSceme[] = [
+const monthsSchemes: MonthScheme[] = [
 	{
 		date: new Date(2023, 7, 1),
 		length: 31,
@@ -37,10 +37,10 @@ describe('Month factories', () => {
 	});
 });
 
-function prepareTestCases<T extends MonthSceme>(
+function prepareTestCases<T extends MonthScheme>(
 	scheme: T,
 	fn: (date: Date, options: T['arguments']) => (Date | null)[]
-): PreparedMonth {
+): HydratedMonthScheme {
 	const month = fn(scheme.date, scheme.arguments);
 
 	return {
@@ -75,17 +75,17 @@ function hasCorrectDatesSequenceForSingleMonth(array: Month): boolean {
 	while (array[rightOffset] === null && rightOffset--) {}
 
 	const subarray: Date[] = array.slice(leftOffset, rightOffset) as Date[];
-	let prevData: number[] = [subarray[0].getDate(), subarray[0].getMonth()];
+	let prevDate: number[] = [subarray[0].getDate(), subarray[0].getMonth()];
 
 	while (subarray.length > 0) {
 		const date = subarray.shift() as Date;
-		const curData = [date.getDate(), date.getMonth()];
+		const curDate = [date.getDate(), date.getMonth()];
 
-		if (curData[0] - prevData[0] !== 1 || curData[1] !== prevData[1]) {
+		if (curDate[0] - prevDate[0] !== 1 || curDate[1] !== prevDate[1]) {
 			return false;
 		}
 
-		prevData = curData;
+		prevDate = curDate;
 	}
 
 	return true;
